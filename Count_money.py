@@ -19,4 +19,4 @@ def Count_Money(changed):
         cnt=cnt+1
 
 
-Count_Money([123213031, 12303020, 37900, 1230300])
+# Count_Money([123213031, 12303020, 37900, 1230300])
