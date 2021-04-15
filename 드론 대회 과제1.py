@@ -4,5 +4,5 @@ print(b)
 
 #change-환전
 #Count_money-변환 
-change(b)
-Count_money(b)
+money_list = change(b)
+Count_money(money_list)
