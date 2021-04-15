@@ -5,4 +5,4 @@ print(b)
 #change-환전
 #Count_money-변환 
 money_list = change(b)
-Count_money(money_list)
+Count_Money(money_list)
