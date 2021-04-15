@@ -15,7 +15,7 @@ def Count_Money(changed):
         for j in Money_list[i]:
             res[j/100] = str(a // j)+'개'
             a = a % j
-        print(i+str(changed[cnt])': ',res)
+        print(i+str(changed[cnt])+': ',res)
         cnt=cnt+1
 
 
