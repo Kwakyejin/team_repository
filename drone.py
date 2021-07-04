@@ -15,7 +15,7 @@ def find_centroid(img): # centroid = 240x240 in (480x480) // need to recheck
     upper_green = np.array([80, 255, 255])
     k = 0
     img = cv2.imread("img")
-    img = cv2.GaussianBlur(img, (9, 9), 3)
+    # img = cv2.GaussianBlur(img, (9, 9), 3)
     img = cv2.resize(img, dsize=(480,480))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -47,11 +47,12 @@ def check_distance(img):
     cx, cy = find_centroid(img)
     sendControlPosition(0, 0.1, 0, 0.1, 0, 0)
     cx2, cy2 = find_centroid(img)
-    change_f = abs(cx - cx2)#cx_2
+    change_f = abs(cx - cx2)# cx_2
     m_per_f = 0.1/change_f
     x = 240 - cx2 # x > 0 go right x < 0 go left
-    y = 240 - cy2 #y > 0 go up y < 0 go down
-    return x, y
+    y = 240 - cy2 # y > 0 go up y < 0 go down
+    return x*m_per_f, y*m_per_f
 
 def move_to_center(x, y):
     sendControlPosition(0, -x, y, 1, 0, 0) # +y = left -y = right
+
