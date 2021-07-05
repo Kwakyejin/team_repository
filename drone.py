@@ -6,7 +6,7 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 import time
 
-#sendControlPosition(self, positionX, positionY, positionZ, velocity, heading, $
+#sendControlPosition(self, positionX, positionY, positionZ, velocity, heading, rotationalVelocity):
 
 def capture_img():
     camera = PiCamera()
@@ -16,7 +16,7 @@ def capture_img():
     camera.rotation = 180
     camera.capture(img)
     camera.close()
-    return img # 캡쳐 이미지 경로
+    return img # log
 
 def find_centroid(): # centroid = 240x240 in (480x480) // need to recheck
     drone = Drone()
@@ -28,19 +28,13 @@ def find_centroid(): # centroid = 240x240 in (480x480) // need to recheck
     # img = cv2.resize(img, dsize=(480,480))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_green, upper_green)
-    drone = Drone()
-    lower_green = np.array([50, 128, 50])
-    upper_green = np.array([80, 255, 255])
-    # k = 0
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
-    # img = cv2.resize(img, dsize=(480,480))
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_green, upper_green)
-    _,contours,hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # return = img, contours, hierarchy
-    print(contours, hierarchy)
+    _,contours,hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # img, cont, hier / https://opencv-python.readthedocs.io/en/latest/doc/15.imageContours/imageContours.html
+    print(contours, hierarchy[0], len(hierarchy[0]))
+    img = cv2.drawContours(img, contours, 0, (255,255,0), 3)
     if len(hierarchy) <= 1:
         print("go back")
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
         time.sleep(5)
         # drone.sendControlPosition(0, 0.1, 0, 0.1, 0, 0)
         find_centroid()
@@ -53,14 +47,17 @@ def find_centroid(): # centroid = 240x240 in (480x480) // need to recheck
         #     for j in range(len(i)):
         #         if k == 0:
         #             # pass
-        #             cv2.circle(img, (int(i[j][0][0]), int(i[j][0][1])), 4, (0$
+        #             cv2.circle(img, (int(i[j][0][0]), int(i[j][0][1])), 4, (0, 0, 255), -1)
         #         else:
-        #             cv2.circle(img, (int(i[j][0][0]), int(i[j][0][1])), 4, (2$
+        #             cv2.circle(img, (int(i[j][0][0]), int(i[j][0][1])), 4, (255, 255, 255), -1)
         #     k = 1
         # cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
         # cv2.imshow('asdasd', img)
         # cv2.imshow('mask', mask)
         # cv2.waitKey(0)
+        cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
         return cx, cy
 
 def check_distance():
@@ -76,13 +73,11 @@ def check_distance():
     y = 120 - cy2 # y > 0 go up y < 0 go down
     print(cx,cy,cx2,cy2)
     return x*m_per_f, y*m_per_f
-                                            
+
 def move_to_center(x, y):
     print('move to center')
     drone = Drone()
     #drone.sendControlPosition(0, -x, y, 1, 0, 0) # +y = left -y = right
 
-
-
-
-
+def pass_obstacle():
+    pass
