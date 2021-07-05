@@ -37,7 +37,7 @@ def find_centroid(): # centroid = 240x240 in (480x480) // need to recheck
     # img = cv2.resize(img, dsize=(480,480))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_green, upper_green)
-    _,contours,hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPR$
+    _,contours,hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # return = img, contours, hierarchy
     print(contours, hierarchy)
     if len(hierarchy) <= 1:
         print("go back")
