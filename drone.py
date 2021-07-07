@@ -92,6 +92,7 @@ def check_distance(drone):
 def move_to_center(drone, x, y):
     print('move to center')
     drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
+    time.sleep(10)
     pass_obstacle()
 
 
