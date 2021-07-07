@@ -92,7 +92,50 @@ def check_distance(drone):
 def move_to_center(drone, x, y):
     print('move to center')
     drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
+    pass_obstacle()
 
 
-def pass_obstacle():
-    pass
+def find_redpoint():
+    img = cv2.imread(capture_img())
+    upper_red = [255,0,0]
+    lower_red = [0,0,0]
+    img = cv2.GaussianBlur(img, (9, 9), 3)
+
+    # img = cv2.resize(img, dsize=(240,240))
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower_red, upper_red)
+    point_red = np.nonzero(mask)
+    num_point_red = np.size(point_red)
+    return num_point_red
+
+def find_perplepoint():
+    img = cv2.imread(capture_img())
+    upper_perple = [112,48,160]
+    lower_perple = [0,0,0]
+    img = cv2.GaussianBlur(img, (9, 9), 3)
+
+    # img = cv2.resize(img, dsize=(240,240))
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower_perple, upper_perple)
+    point_perple = np.nonzero(mask)
+    num_point_red = np.size(point_perple)
+
+
+def pass_obstacle(drone):
+    if find_perplepoint() > 200:
+        print('detect perple point')
+        drone.sendLanding()
+        drone.close()
+        return 0 
+        
+    if find_redpoint() < 200:
+        drone.sendControlPosition(1, 0, 0, 1, 0, 0)
+        print('not find red(perple) point')
+        time.sleep(1)
+        pass_obstacle(drone)
+    else:
+        drone.sendControlPosition(0, 0, 0, 0, 90, 18)
+        print('find red point')
+        time.sleep(5)
+        return 0
+        # sendControlPosition(self, positionX, positionY, positionZ, velocity, heading, rotationalVelocity)
