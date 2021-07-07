@@ -23,7 +23,7 @@ def capture_img():
     camera.rotation = 180
     camera.capture(img)
     camera.close()
-    return img  # 캡쳐 이미지 경로
+    return img  # capture img path
 
 
 def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
@@ -49,10 +49,7 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
         cv2.imshow('mask', mask)
         cv2.waitKey(0)
 
-        drone.sendLanding()
-        print('w')
-        cv2.waitKey(0)
-        # drone.sendControlPosition(0.2, 0, 0, 1, 0, 0)
+        drone.sendControlPosition(-1, 0, 0, 1, 0, 0)
         time.sleep(3)
         find_centroid(drone)
     else:
@@ -92,8 +89,8 @@ def check_distance(drone):
 def move_to_center(drone, x, y):
     print('move to center')
     drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
-    time.sleep(10)
-    pass_obstacle()
+    time.sleep(5)
+    pass_obstacle(drone)
 
 
 def find_redpoint():
@@ -102,7 +99,6 @@ def find_redpoint():
     lower_red = [0,0,0]
     img = cv2.GaussianBlur(img, (9, 9), 3)
 
-    # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_red, upper_red)
     point_red = np.nonzero(mask)
@@ -115,7 +111,6 @@ def find_perplepoint():
     lower_perple = [0,0,0]
     img = cv2.GaussianBlur(img, (9, 9), 3)
 
-    # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_perple, upper_perple)
     point_perple = np.nonzero(mask)
@@ -127,16 +122,16 @@ def pass_obstacle(drone):
         print('detect perple point')
         drone.sendLanding()
         drone.close()
-        return 0 
-        
+        return 0
+
     if find_redpoint() < 200:
         drone.sendControlPosition(1, 0, 0, 1, 0, 0)
         print('not find red(perple) point')
-        time.sleep(1)
+        time.sleep(3)
         pass_obstacle(drone)
+        
     else:
         drone.sendControlPosition(0, 0, 0, 0, 90, 18)
         print('find red point')
         time.sleep(5)
         return 0
-        # sendControlPosition(self, positionX, positionY, positionZ, velocity, heading, rotationalVelocity)
