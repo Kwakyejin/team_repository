@@ -105,20 +105,21 @@ def find_redpoint():
     num_point_red = np.size(point_red)
     return num_point_red
 
-def find_perplepoint():
+def find_purplepoint():
     img = cv2.imread(capture_img())
-    upper_perple = [112,48,160]
-    lower_perple = [0,0,0]
+    upper_purple = [112,48,160]
+    lower_purple = [0,0,0]
     img = cv2.GaussianBlur(img, (9, 9), 3)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_perple, upper_perple)
-    point_perple = np.nonzero(mask)
-    num_point_red = np.size(point_perple)
+    mask = cv2.inRange(hsv, lower_purple, upper_purple)
+    point_purple = np.nonzero(mask)
+    num_point_purple = np.size(point_purple)
+    return num_point_purple
 
 
 def pass_obstacle(drone):
-    if find_perplepoint() > 200:
+    if find_purplepoint() > 200:
         print('detect perple point')
         drone.sendLanding()
         drone.close()
@@ -129,6 +130,12 @@ def pass_obstacle(drone):
         print('not find red(perple) point')
         time.sleep(3)
         pass_obstacle(drone)
+
+    else:
+        drone.sendControlPosition(0, 0, 0, 0, 90, 18)
+        print('find red point')
+        time.sleep(5)
+        return 0
         
     else:
         drone.sendControlPosition(0, 0, 0, 0, 90, 18)
