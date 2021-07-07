@@ -6,14 +6,16 @@ from e_drone.protocol import *
 import time
 
 
-drone = Drone()
-drone.open()
-# drone.sendTakeOff()
+drone = initialize()
+drone.sendTakeOff()
 print('check')
 time.sleep(1)
-x, y = check_distance()
-move_to_center(x, y)
+x, y = check_distance(drone)
+move_to_center(drone, x, y)
 print('finish')
 time.sleep(5)
-# drone.sendLanding()
-# pass_obstacle()
+# x, y = check_distance(drone)
+# move_to_center(drone, x, y)
+# x, y = check_distance(drone)
+# move_to_center(drone, x, y)
+drone.sendLanding()
