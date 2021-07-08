@@ -120,8 +120,6 @@ def find_purplepoint():
 def pass_obstacle(drone):
     if find_purplepoint() > 110:
         print('detect purple point')
-        drone.sendLanding()
-        drone.close()
         return 0
 
     if find_redpoint() < 110:
