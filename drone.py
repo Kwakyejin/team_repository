@@ -50,7 +50,7 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
 
         drone.sendControlPosition(-0.5, 0, 0, 1, 0, 0)
         time.sleep(3)
-        find_centroid(drone)
+        return find_centroid(drone)
     else:
         cnt = contours[1]
         img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
@@ -94,8 +94,8 @@ def move_to_center(drone, x, y):
 
 def find_redpoint():
     img = cv2.imread(capture_img())
-    upper_red = [255,0,0]
-    lower_red = [0,0,0]
+    upper_red = [15,255,255]
+    lower_red = [0,50,80]
     img = cv2.GaussianBlur(img, (9, 9), 3)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -118,13 +118,13 @@ def find_purplepoint():
 
 
 def pass_obstacle(drone):
-    if find_purplepoint() > 200:
+    if find_purplepoint() > 110:
         print('detect purple point')
         drone.sendLanding()
         drone.close()
         return 0
 
-    if find_redpoint() < 200:
+    if find_redpoint() < 110:
         drone.sendControlPosition(1, 0, 0, 1, 0, 0)
         print('not find red(purple) point')
         time.sleep(3)
