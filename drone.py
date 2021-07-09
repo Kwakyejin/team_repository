@@ -35,14 +35,14 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
 
     # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     print(len(hierarchy[0]))
 
     # img = cv2.drawContours(img, contours, -1, (255,255,0), 3)
-    if len(hierarchy[0]) <= 1 or None:
+    if len(hierarchy[0]) <= 1 or hierarchy == None:
         print("go back")
         cv2.imshow('img', img)
         cv2.imshow('mask', mask)
@@ -86,15 +86,15 @@ def check_distance(drone):
     return 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2)  # x*m_per_f, y*m_per_f
 
 def check_center():
-    lower_green = np.array([50, 128, 50])
-    upper_green = np.array([80, 255, 255])
+    lower_blue = np.array([100, 80, 80])
+    upper_blue = np.array([110, 255, 255])
 
     img = cv2.imread(capture_img())
     img = cv2.GaussianBlur(img, (9, 9), 3)
 
     # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
     _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     cnt = contours[1]
@@ -156,10 +156,10 @@ def pass_obstacle(drone):
         #return 0
         
     if find_redpoint() < 110:
-    drone.sendControlPosition(0.5, 0, 0, 1, 0, 0)
-    print('not find red(purple) point')
-    time.sleep(7)
-    pass_obstacle(drone)
+        drone.sendControlPosition(0.5, 0, 0, 1, 0, 0)
+        print('not find red(purple) point')
+        time.sleep(7)
+        pass_obstacle(drone)
 
     else:
         drone.sendControlPosition(0, 0, 0, 0, 90, 18)
