@@ -63,9 +63,11 @@ return img  # capture img path
 
 <이미지 처리 과정>
 
-우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
+우선 이미지를 blur처리를 해준다. -> cv2.GaussianBlur
 
-lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
+이미지의 BGR로 HSV값으로 바꿔준다. -> cv2.COLOR_BGR2HSV
+
+lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
 
 <드론 명령 결정 과정>
 
