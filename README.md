@@ -73,7 +73,7 @@ return img  # capture img path
 
 - lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
 
-<드론 명령 결정 과정>
+<원 중심  과정>
 
 - 계층 파악을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
 ```py
