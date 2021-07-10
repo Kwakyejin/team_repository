@@ -82,6 +82,7 @@ return img  # capture img path
 if len(hierarchy[0]) <= 1 or hierarchy == None:
 ```
 - 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
+- zerodivision 에러를 막기 위해 분모에 아주 작은 실수를 더해준다.
 ```py
 cnt = contours[1]
 ...
