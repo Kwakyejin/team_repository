@@ -75,48 +75,34 @@ return img  # capture img path
 
 <드론 명령 결정 과정>
 
-계층 파악(->)을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
-그렇지 않다면
-
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    print(len(hierarchy[0]))
-
-    if len(hierarchy[0]) <= 1 or hierarchy == None:
-        print("go back")
-        cv2.imshow('img', img)
-        cv2.imshow('mask', mask)
-        cv2.waitKey(0)
-
-        drone.sendControlPosition(-0.5, 0, 0, 1, 0, 0)
-        time.sleep(7)
-        return find_centroid(drone)
-
-    else:
-        cnt = contours[1]
-        img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
-        M = cv2.moments(cnt)
-        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-        cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
-        print(cx, cy)
-        cv2.imshow('img', img)
-        cv2.imshow('mask', mask)
-        cv2.waitKey(0)
-        return cx, cy
+- 계층 파악을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
+```py
+if len(hierarchy[0]) <= 1 or hierarchy == None:
+```
+- 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
+```py
+cnt = contours[1]
+img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
+M = cv2.moments(cnt)
+cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
+print(cx, cy)
+cv2.imshow('img', img)
+cv2.imshow('mask', mask)
+cv2.waitKey(0)
+return cx, cy
+```
 
 **4. check_distance**
 
-find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
+- find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
 
 *중심에 가까워질려면 음의 값이어야하기 때문이다, 0.15는*
 
-그 값을 mx, my로 지정하고 그만큼 드론을 이동시켜준다.
+- 그 값을 mx, my로 지정하고 그만큼 드론을 이동시켜준다.
    
-다시 find_centroid를 통해 무게 중심(cx2, cy2)을 찾고 
+- 다시 find_centroid를 통해 무게 중심(cx2, cy2)을 찾고 
 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2) 의 값을 반환해준다.
     
 
