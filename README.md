@@ -84,15 +84,13 @@ if len(hierarchy[0]) <= 1 or hierarchy == None:
 - 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
 ```py
 cnt = contours[1]
-img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
+? img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
 M = cv2.moments(cnt)
 cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
 cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
-print(cx, cy)
-cv2.imshow('img', img)
-cv2.imshow('mask', mask)
-cv2.waitKey(0)
+? cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
+? print(cx, cy)
+...
 return cx, cy
 ```
 
