@@ -162,7 +162,7 @@ return num_point_purple
 
 - find_purplepoint의 값이 100보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
 
-- find_redpoint의 값이 110보다 작을 시에는 드론을 x축으로 0.5 이동시킨 다음 pass_obstacle를 다시 실행시본다.
+- find_redpoint의 값이 110보다 작을 시에는 드론을 x축으로 0.5 이동시킨 다음 pass_obstacle를 다시 실행시켜본다.
 
 - find_redpoint의 값이 110보다 클 시에는 드론을 90도로 좌회전을 시켜준다.
 
