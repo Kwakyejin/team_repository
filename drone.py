@@ -37,7 +37,7 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     print(len(hierarchy[0]))
 
@@ -53,8 +53,8 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
         return find_centroid(drone)
 
     else:
-        cnt = contours[1]
-        img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
+        cnt = contours[0]
+        img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
         M = cv2.moments(cnt)
         cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
@@ -95,9 +95,9 @@ def check_center():
     # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    cnt = contours[1]
+    cnt = contours[0]
     M = cv2.moments(cnt)
     cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
     cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
