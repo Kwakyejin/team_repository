@@ -37,7 +37,7 @@ import time
 ```
 ### drone.py
 드론에 대한 함수를 정의한 파이썬 
-1. initialize
+**1. initialize**
 
 드론 객체를 생성하고 드론 조작을 시작하기 위한 함수
 ```py
@@ -46,7 +46,7 @@ drone.open()
 return drone
 ```
 
-2. capture_img
+**2. capture_img**
 
 라즈베리파이 카메라 모듈을 카메라로 보이는 장면을 캡쳐해준다. resolution은 (240,240), frame rate는 32이고 찍으면 뒤집혀 찍히기 때문에 rotation을 180으로 설정해준다.
 ```py
@@ -60,7 +60,7 @@ camera.close()
 return img  # capture img path
 ```
 
-3. find_centroid**
+**3. find_centroid**
 
 <이미지 처리 과정>
 
@@ -105,7 +105,7 @@ return img  # capture img path
         cv2.waitKey(0)
         return cx, cy
 
-4. check_distance**
+**4. check_distance**
 
 find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
 
@@ -124,7 +124,7 @@ find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처
     print(cx, cy, cx2, cy2)  # ,m_per_f)
     return 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2)  # x*m_per_f, y*m_per_f
 
-5. check_center
+**5. check_center**
 
 - find_centroid 함수의 <이미지 처리 과정>를 똑같이 거친다.
 
@@ -137,12 +137,12 @@ cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
 ```
 - cx와 cy의 값이 처음 중심이라 잡은 (120, 150*)와 10 이하의 차이가 난다면 True, 아니라면 False를 반환한다.
         
-6. move_to_center**
+**6. move_to_center**
 
 drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
 만약 check_center가 True로 반환되면 pass_obstacle을 하고 아닐시에는 check_distance로 거리를 다시 측정한 다음 move_to_center를 다시 해준다.
 
-7. find_redpoint
+**7. find_redpoint**
 
 <이미지 처리 과정>
 
@@ -157,7 +157,7 @@ cv2.imshow('mask',mask)
 cv2.waitKey(0)
 return num_point_red
 
-8. find_purplepoint
+**8. find_purplepoint**
 
 <이미지 처리 과정>
 
@@ -169,7 +169,7 @@ return num_point_red
     num_point_purple = np.size(point_purple)
     return num_point_purple
 
-9. pass_obstacle**
+**9. pass_obstacle**
 
 - find_purplepoint의 값이 100보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
 
