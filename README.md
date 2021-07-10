@@ -137,7 +137,7 @@ drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
 
 - 우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
 
-- lower_red, upper_red라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
+- lower_red, upper_red라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange 
 
 point_red = np.nonzero(mask)
 num_point_red = np.size(point_red)
@@ -152,7 +152,7 @@ return num_point_red
 
 - 우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
 
-- lower_purple, upper_purple라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
+- lower_purple, upper_purple라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
 4*4*
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
