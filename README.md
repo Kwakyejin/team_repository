@@ -44,6 +44,7 @@ drone = Drone()
 drone.open()
 return drone
 ```
+
 2. capture_img
 
 라즈베리파이 카메라 모듈을 카메라로 보이는 장면을 캡쳐해준다. resolution은 (240,240), frame rate는 32이고 찍으면 뒤집혀 찍히기 때문에 rotation을 180으로 설정해준다.
@@ -58,41 +59,16 @@ camera.close()
 return img  # capture img path
 ```
 
-3. find_centroid
+3. find_centroid**
 
-4. check_distance
+<이미지 처리 과정>
+우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
+lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
 
-5. check_center
+<드론 명령 결정 과정>
+계층 파악(->)을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
+그렇지 않다면
 
-6. move_to_center
-
-7. find_redpoint
-
-8. find_purplepoint
-
-9. pass_obstacle
-   
-
-
-
-    camera = PiCamera()
-    img = 'img.jpg'
-    camera.resolution = (240, 240)  # 160, 128
-    camera.framerate = 32
-    camera.rotation = 180
-    camera.capture(img)
-    camera.close()
-    return img  # capture img path
-
-
-def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
-
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
-
-    # img = cv2.resize(img, dsize=(240,240))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
@@ -100,7 +76,6 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
 
     print(len(hierarchy[0]))
 
-    # img = cv2.drawContours(img, contours, -1, (255,255,0), 3)
     if len(hierarchy[0]) <= 1 or hierarchy == None:
         print("go back")
         cv2.imshow('img', img)
@@ -124,19 +99,16 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
         cv2.waitKey(0)
         return cx, cy
 
+4. check_distance**
 
-def check_distance(drone):
-    cx, cy = find_centroid(drone)
-    mx = -0.15 if cx >= 120 else 0.15
-    my = -0.15 if cy >= 140 else 0.15
+find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
+*중심에 가까워질려면 음의 값이어야하기 때문이다, 0.15는*
+그 값을 mx, my로 지정하고 그만큼 드론을 이동시켜준다.
+   
+다시 find_centroid를 통해 무게 중심(cx2, cy2)을 찾고 
+0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2) 의 값을 반환해준다.
+    
 
-    print('first ok')
-    time.sleep(5)
-    print('move')
-    drone.sendControlPosition(0, mx, my, 1, 0, 0)
-    time.sleep(5)
-    cx2, cy2 = find_centroid(drone)
-    print('second ok')
     # change_f = abs(cx - cx2)# cx_2
     # m_per_f = 0.2/change_f
     # x = 120 - cx2 # x > 0 go right x < 0 go left
@@ -144,100 +116,53 @@ def check_distance(drone):
     print(cx, cy, cx2, cy2)  # ,m_per_f)
     return 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2)  # x*m_per_f, y*m_per_f
 
-def check_center():
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
+5. check_center
 
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
+find_centroid 함수의 <이미지 처리 과정>를 똑같이 거친다.
+contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
+```py
+cnt = contours[1]
+M = cv2.moments(cnt)
+cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+```
+cx와 cy의 값이 처음 중심이라 잡은 (120, 150*)와 10 이하의 차이가 난다면 True, 아니라면 False를 반환한다.
+        
+6. move_to_center**
 
-    # img = cv2.resize(img, dsize=(240,240))
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    cnt = contours[1]
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_center : ',cx, cy)
-    if abs(cx-120) < 10 and abs(cy-140) < 10:
-        return True
-    else:
-        return False
-
-def move_to_center(drone, x, y):
-    print('move to center')
     drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
-    time.sleep(5)
-    if check_center():
-        pass_obstacle(drone)
-    else:
-        x1, y1 = check_distance(drone)
-        move_to_center(drone, x1, y1)
-    #pass_obstacle(drone)
+만약 check_center가 True로 반환되면 pass_obstacle을 하고 아닐시에는 check_distance로 거리를 다시 측정한 다음 move_to_center를 다시 해준다.
 
+7. find_redpoint
 
-def find_redpoint():
-    img = cv2.imread(capture_img())
-    upper_red = np.array([15,255,255])
-    lower_red = np.array([0,50,80])
-    img = cv2.GaussianBlur(img, (9, 9), 2.5)
+<이미지 처리 과정>
+우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
+lower_red, upper_red라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
 
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_red, upper_red)
-    
-    point_red = np.nonzero(mask)
-    num_point_red = np.size(point_red)
-    #cv2.imshow('img',img)
-    cv2.imshow('mask',mask)
-    cv2.waitKey(0)
-    return num_point_red
+point_red = np.nonzero(mask)
+num_point_red = np.size(point_red)
+#cv2.imshow('img',img)
+cv2.imshow('mask',mask)
+cv2.waitKey(0)
+return num_point_red
 
-def find_purplepoint():
-    img = cv2.imread(capture_img())
-    upper_purple = np.array([112,48,160])
-    lower_purple = np.array([90,40,100])
-    img = cv2.GaussianBlur(img, (9, 9), 2.5)
+8. find_purplepoint
 
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_purple, upper_purple)
+<이미지 처리 과정>
+우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
+lower_purple, upper_purple라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2. 
+4*4*
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
     return num_point_purple
 
+9. pass_obstacle**
+find_purplepoint의 값이 100보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
+find_redpoint의 값이 110보다 작을 시에는 드론을 x축으로 0.5 이동시킨 다음 pass_obstacle를 다시 실행시본다.
+find_redpoint의 값이 110보다 클 시에는 드론을 90도로 좌회전을 시켜준다.
 
-def pass_obstacle(drone):
-    #if find_purplepoint() > 100:
-        #print('detect purple point')
-        #drone.sendLanding()
-        #drone.close()
-        #return 0
-        
-    if find_redpoint() < 110:
-        drone.sendControlPosition(0.5, 0, 0, 1, 0, 0)
-        print('not find red(purple) point')
-        time.sleep(7)
-        pass_obstacle(drone)
-
-    else:
-        drone.sendControlPosition(0, 0, 0, 0, 90, 18)
-        print('find red point')
-
-        time.sleep(5)
-        return 0
 ### main.py
 드론이 이동 할 수 있도록 drone.py에 만든 함수를 나열한 파일
-drone = initialize()
-drone.sendTakeOff()
-print('check')
-time.sleep(1)
-x, y = check_distance(drone)
-move_to_center(drone, x, y)
-print('finish')
-time.sleep(5)
-# x, y = check_distance(drone)
-# move_to_center(drone, x, y)
-# x, y = check_distance(drone)
-# move_to_center(drone, x, y)
-drone.sendLanding()
+drone이라는 객체를 생성한 다음 drone을 이륙하도록 하게 함 -> drone.sendTakeOff()
+차례로 check_distance(drone), move_to_center(drone, x, y)이라는 함수를 실행시켜준다.
+3차례 반복 뒤 드론이 착륙을 하게 하도록 함. -> drone.sendLanding()
