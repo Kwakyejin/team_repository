@@ -37,6 +37,7 @@ import time
 ### drone.py
 드론에 대한 함수를 정의한 파이썬 
 1. initialize
+
 드론 객체를 생성하고 드론 조작을 시작하기 위한 함수
 ```py
 drone = Drone()
@@ -44,6 +45,7 @@ drone.open()
 return drone
 ```
 2. capture_img
+
 라즈베리파이 카메라 모듈을 카메라로 보이는 장면을 캡쳐해준다. resolution은 (240,240), frame rate는 32이고 찍으면 뒤집혀 찍히기 때문에 rotation을 180으로 설정해준다.
 ```py
 camera = PiCamera()
