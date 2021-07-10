@@ -84,12 +84,10 @@ if len(hierarchy[0]) <= 1 or hierarchy == None:
 - 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
 ```py
 cnt = contours[1]
-? img = cv2.drawContours(img, contours, 1, (255, 255, 0), 3)
+...
 M = cv2.moments(cnt)
 cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
 cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-? cv2.circle(img, (cx, cy), 4, (255, 255, 0), -1)
-? print(cx, cy)
 ...
 return cx, cy
 ```
@@ -98,21 +96,13 @@ return cx, cy
 
 - find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
 
-*중심에 가까워질려면 음의 값이어야하기 때문이다, 0.15는*
+*중심에 가까워질려면 음의 값이어야하기 때문이다, 0.15는 움직이는 거리아다.*
 
 - 그 값을 mx, my로 지정하고 그만큼 드론을 이동시켜준다.
    
 - 다시 find_centroid를 통해 무게 중심(cx2, cy2)을 찾고 
 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2) 의 값을 반환해준다.
     
-
-    # change_f = abs(cx - cx2)# cx_2
-    # m_per_f = 0.2/change_f
-    # x = 120 - cx2 # x > 0 go right x < 0 go left
-    # y = 120 - cy2 # y > 0 go up y < 0 go down
-    print(cx, cy, cx2, cy2)  # ,m_per_f)
-    return 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2)  # x*m_per_f, y*m_per_f
-
 **5. check_center**
 
 - find_centroid 함수의 <이미지 처리 과정>를 똑같이 거친다.
@@ -128,8 +118,12 @@ cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
         
 **6. move_to_center**
 
-drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
-만약 check_center가 True로 반환되면 pass_obstacle을 하고 아닐시에는 check_distance로 거리를 다시 측정한 다음 move_to_center를 다시 해준다.
+- check_distance의 return 값을 x, y로 받고 drone을 x, y 만큼 움직인다. 
+```py
+drone.sendControlPosition(0, x, y, 1, 0, 0) 
+```
+
+- check_center가 True로 반환되면 pass_obstacle을 하고 아닐시에는 check_distance로 거리를 다시 측정한 다음 move_to_center를 다시 해준다.
 
 **7. find_redpoint**
 
@@ -139,12 +133,14 @@ drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
 
 - lower_red, upper_red라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange 
 
+- mask 처리된 것에서 np.nonzero의 갯수를 알아내서 return 해준다.
+```py
 point_red = np.nonzero(mask)
 num_point_red = np.size(point_red)
-#cv2.imshow('img',img)
-cv2.imshow('mask',mask)
-cv2.waitKey(0)
 return num_point_red
+```
+
+
 
 **8. find_purplepoint**
 
@@ -153,10 +149,14 @@ return num_point_red
 - 우선 이미지를 blur처리를 해준다. ->cv2.GaussianBlur
 
 - lower_purple, upper_purple라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
-4*4*
-    point_purple = np.nonzero(mask)
-    num_point_purple = np.size(point_purple)
-    return num_point_purple
+
+- mask 처리된 것에서 np.nonzero의 갯수를 알아내서 return 해준다.
+```py
+point_purple = np.nonzero(mask)
+num_point_purple = np.size(point_purple)
+return num_point_purple
+```
+
 
 **9. pass_obstacle**
 
