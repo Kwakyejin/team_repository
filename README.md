@@ -171,6 +171,7 @@ return num_point_purple
 ```
 
 
+
 **9. pass_obstacle**
 
 - find_purplepoint의 값이 100보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
