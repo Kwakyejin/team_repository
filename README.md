@@ -170,7 +170,7 @@ return num_point_purple
 ### main.py
 드론이 이동 할 수 있도록 drone.py에 만든 함수를 나열한 파일
 
-- drone이라는 객체를 생성한 다음 drone을 이륙하도록 하게 함 -> drone.sendTakeOff()
+- drone이라는 객체를 생성한 다음 drone을 이륙하도록 하게 함 -> drone.sendTakeoff()
 
 - 차례로 check_distance(drone), move_to_center(drone, x, y)이라는 함수를 실행시켜준다.
 
