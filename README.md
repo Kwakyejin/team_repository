@@ -168,8 +168,8 @@ return num_point_red
 point_purple = np.nonzero(mask)
 num_point_purple = np.size(point_purple)
 return num_point_purple
-``
-`
+```
+
 
 **9. pass_obstacle**
 
