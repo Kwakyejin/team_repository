@@ -39,14 +39,7 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
 
         print(len(hierarchy[0]))
 
-        if len(hierarchy[0]) <= 1:
-            print("go back")
-            #cv2.imshow('mask', mask)
-            #cv2.waitKey(0)
-            drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
-            time.sleep(2)
-
-        else:
+        try:
             cnt = contours[0]
             img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
             M = cv2.moments(cnt)
@@ -57,7 +50,13 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
             # cv2.imshow('mask', mask)
             # cv2.waitKey(0)
             return cx, cy
-
+        except ValueError:
+            print("go back")
+            #cv2.imshow('mask', mask)
+            #cv2.waitKey(0)
+            drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
+            time.sleep(2)
+            
 def match_center(drone):
     while not check_y(drone):
         cy = find_centroid(drone)[1]
@@ -102,9 +101,9 @@ def check_x(drone):
     M = cv2.moments(cnt)
     cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
     cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_x : ', cx;;;)
+    print('check_x : ', cx)
 
-    if abs(cx - 120) <= 10:
+    if abs(cx - 120) <= 7:
         print('x true')
         return True
     else:
@@ -127,7 +126,7 @@ def check_y(drone):
     cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
     cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
     print('check_y : ', cy)
-    if abs(cy - 150) <= 10:
+    if abs(cy - 150) <= 7:
         print('y true')
         return True
     else:
@@ -176,7 +175,7 @@ def pass_obstacle(drone):
             return 0
 
         if find_redpoint() < 1000:
-            drone.sendControlPosition(0.4, 0, 0, 0.7, 0, 0)
+            drone.sendControlPosition16(4, 0, 0, 5, 0, 0)
             drone.sendControlWhile(0, 0, 0, 0, 1000)
             print('not find red(purple) point')
             time.sleep(2)
@@ -184,10 +183,10 @@ def pass_obstacle(drone):
         else:
             drone.sendControlPosition(0, 0, 0, 0, 90, 45)
             print('find red point')
-            time.sleep(7)
+            time.sleep(3)
             drone.sendControlWhile(0, 0, 0, 0, 1000)
             print('h')
-            drone.sendControlWhile(1, 0, 0, 0.7, 0, 0)
+            drone.sendControlPosition16(10, 0, 0, 5, 0, 0)
             time.sleep(2)
             return 0
 
