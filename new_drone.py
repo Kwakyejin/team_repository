@@ -45,7 +45,7 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
             cv2.imshow('mask', mask)
             cv2.waitKey(0)
             drone.sendControlPosition(-0.5, 0, 0, 1, 0, 0)
-            time.sleep(7)
+            time.sleep(5)
 
         else:
             cnt = contours[0]
@@ -59,24 +59,25 @@ def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
             cv2.waitKey(0)
             return cx, cy
 
+def match_center(drone):
+    while not check_center(drone):
+        x, y = find_centroid(drone)
+        print(x, y)
+        if x < 120:
+            drone.sendControlPosition(0, -0.2, 0, 1, 0, 0)
+        else:
+            drone.sendControlPosition(0, 0.2, 0, 1, 0, 0)
+        time.sleep(5)
+        
 
-def check_distance(drone):
-    cx, cy = find_centroid(drone)
-    mx = -0.15 if cx >= 120 else 0.15
-    my = -0.15 if cy >= 140 else 0.15
+        if y < 140:
+            drone.sendControlPosition(0, 0, 0.2, 1, 0, 0)
+        else:
+            drone.sendControlPosition(0, 0, -0.2, 1, 0, 0)
+        time.sleep(5)
+    pass_obstacle(drone)
 
-    print('first ok')
-    time.sleep(5)
-    print('move')
-    drone.sendControlPosition(0, mx, my, 1, 0, 0)
-    time.sleep(5)
-    cx2, cy2 = find_centroid(drone)
-    print('second ok')
-    print(cx, cy, cx2, cy2)
-    return 0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2)  # x*m_per_f, y*m_per_f
-
-
-def check_center():
+def check_center(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
 
@@ -93,21 +94,10 @@ def check_center():
     cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
     cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
     print('check_center : ', cx, cy)
-    if abs(cx - 120) < 10 and abs(cy - 140) < 10:
+    if abs(cx - 120) <= 10 and abs(cy - 140) <= 10:
         return True
     else:
         return False
-
-
-def move_to_center(drone, x, y):
-    print('move to center')
-    drone.sendControlPosition(0, x, y, 1, 0, 0)  # +y = left -y = right
-    time.sleep(5)
-    if check_center():
-        pass_obstacle(drone)
-    else:
-        x1, y1 = check_distance(drone)
-        move_to_center(drone, x1, y1)
 
 def find_redpoint():
     img = cv2.imread(capture_img())
@@ -120,6 +110,7 @@ def find_redpoint():
 
     point_red = np.nonzero(mask)
     num_point_red = np.size(point_red)
+    print('red : ', num_point_red)
     cv2.imshow('mask', mask)
     cv2.waitKey(0)
     return num_point_red
@@ -135,6 +126,7 @@ def find_purplepoint():
     mask = cv2.inRange(hsv, lower_purple, upper_purple)
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
+    print('purple : ', num_point_purple)
     return num_point_purple
 
 
