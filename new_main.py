@@ -5,16 +5,27 @@ from e_drone.drone import *
 from e_drone.protocol import *
 import time
 
+try:
+    drone = initialize()
+    drone.sendTakeOff()
+    time.sleep(3)
+    drone.sendControlWhile(0, 0, 0, 0, 1000)
+    print('start')
+    match_center(drone)
+    print('finish1')
+    time.sleep(5)
+    match_center(drone)
+    print('finish2')
+    time.sleep(5)
+    match_center(drone)
+    print('finish3')
+    drone.close()
+except KeyboardInterrupt:
+    drone.sendLanding()
+    drone.close()
+    print('stop')
+except Exception as e:
+    drone.sendLanding()
+    drone.close()
+    print(e)
 
-drone = initialize()
-drone.sendTakeOff()
-print('check')
-time.sleep(1)
-match_center(drone)
-print('finish')
-time.sleep(5)
-# x, y = check_distance(drone)
-# move_to_center(drone, x, y)
-# x, y = check_distance(drone)
-# move_to_center(drone, x, y)
-drone.sendLanding()
