@@ -102,7 +102,7 @@ def check_x(drone):
     M = cv2.moments(cnt)
     cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
     cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_x : ', cx)
+    print('check_x : ', cx;;;)
 
     if abs(cx - 120) <= 10:
         print('x true')
