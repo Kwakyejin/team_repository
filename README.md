@@ -104,32 +104,36 @@ print(h)
 
 <check_y가 False일때> 
 
-- check_y가 False면서 중심이 143보다 작을 때 y축으로 0.1 상승한다.
+- 중심이 143보다 작을 때 y축으로 0.1 상승한다.
 
-- check_y가 False면서 중심이 157보다 클 때 y축으로 0.1 하강한다.
+- 중심이 157보다 클 때 y축으로 0.1 하강한다.
 
-- check_y가 False면서 중심이 143보다 크고 157보다 작을 때 print('y ok y : ', cy)를 해준다.
+- 중심이 143보다 크고 157보다 작을 때 print('y ok y : ', cy)를 해준다.
 
 <check_x가 False일때>
 
-- check_x가 False면서 중심이 113보다 작을 때 x축으로 0.1 증가한다.
+- 중심이 113보다 작을 때 x축으로 0.1 증가한다.
 
-- check_x가 False면서 중심이 127보다 클 때 x축으로 0.1 감소한다.
+- 중심이 127보다 클 때 x축으로 0.1 감소한다.
 
-- check_x가 False면서 중심이 113보다 크고 127보다 작을 때 print('x ok x : ', cx)를 해준다.
+- 중심이 113보다 크고 127보다 작을 때 print('x ok x : ', cx)를 해준다.
 
 
 
 **4. find_centroid**
 
 - capture_img로 캡쳐된 장면을 이진화한 후 컨투어를 찾는다. (중심에 가까울수록 계층이 작은 RETR_LIST를 옵션으로 넣어 원이 0번 계층으로 잡히게 만듦)
+```py
+img = cv2.imread(capture_img())
+img = cv2.GaussianBlur(img, (9, 9), 3)
+
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+mask = cv2.inRange(hsv, lower_blue, upper_blue)
+
+_, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+```
 
 - 만약 계층개수가 1개거나 0개이면 드론을 뒤로 움직여서 다시 find_centroid를 사용한다. 장애물이미지가 잘리지 않았을 때, 즉 컨투어가 2개일 때 중심의 좌표를 반환한다.
-```py
-drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
-move_to_center(drone)
-```  
-
 
 -  두번째 장애물부터는 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동을 반복한다. (장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재) 
 ```py
@@ -139,14 +143,7 @@ move_to_center(drone)
     
 -  장애물이 다 보이는 위치로 이동을 하면 앞에서와 똑같이 중심을 리턴해준다. 
 
-```py
-img = cv2.imread(capture_img())
-img = cv2.GaussianBlur(img, (9, 9), 3)
 
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-mask = cv2.inRange(hsv, lower_blue, upper_blue)
-
-_, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
 if len(hierarchy[0]) <= 1 and flag == 1:
     print("go back")
@@ -166,7 +163,6 @@ else:
     # cv2.imshow('mask', mask)
     # cv2.waitKey(0)
     return cx, cy
-```
 
 **5.match_center**
 
