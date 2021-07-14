@@ -40,9 +40,9 @@ Pillow == 5.4.1
 opencv == 3.2.0
 ```
 
+
 ### drone.py
 드론에 대한 함수를 정의한 파이썬 
-
 
 **1. initialize**
 
@@ -52,7 +52,6 @@ drone = Drone()
 drone.open()
 return drone
 ```
-
 
 **2. capture_img**
 
@@ -68,11 +67,83 @@ camera.close()
 return img  # capture img path
 ```
 
-**3. find_centroid**
+**3. move_to_center**
+h -> 계층의 갯수
+    h = -1
+    lower_blue = np.array([100, 80, 80])
+    upper_blue = np.array([110, 255, 255])
+    while h < 2:
+        print('move to center')
+        img = cv2.imread(capture_img())
+        img = cv2.GaussianBlur(img, (9, 9), 3)
 
-capture_img로 캡쳐된 장면을 이진화한 후 컨투어를 찾는다. 이때 중심에 가까울수록 계층이 작은 RETR_LIST를 옵션으로 넣어 원이 0번 계층으로 잡히게 만든다. 만약 계층개수가 1개거나 0개이면 드론을 뒤로 움직여서 다시 find_centroid를 사용한다. 장애물이미지가 잘리지 않았을 때, 즉 컨투어가 2개일 때 중심의 좌표를 반환한다.
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-두번째 장애물부터는 장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재한다. 그렇기에 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동한다. 이를 반복하다보면 결국 장애물이 다 보이는 위치로 이동하게 되고, 이후에는 앞에서와 똑같이 중심을 리턴해준다.
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        cnt = contours[0]
+        M = cv2.moments(cnt)
+
+        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+        h = len(hierarchy[0])
+        print(h)
+        
+        if h >= 2:
+            break
+
+        while not check_y(drone):
+            if cy < 143:
+                drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
+            elif cy > 157:
+                drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
+            else:
+                print('y ok y : ', cy)
+            time.sleep(2)
+
+        drone.sendControlWhile(0, 0, 0, 0, 1000)
+
+        while not check_x(drone):
+            if cx < 113:
+                drone.sendControlPosition(0, 0.1, 0, 0.5, 0, 0)
+            elif cx > 127:
+                drone.sendControlPosition(0, -0.1, 0, 0.5, 0, 0)
+            else:
+                print('x ok x : ', cx)
+            time.sleep(2)
+<이미지 처리 과정>
+
+- 우선 이미지를 blur처리를 해준다. -> cv2.GaussianBlur
+
+- 이미지의 BGR로 HSV값으로 바꿔준다. -> cv2.COLOR_BGR2HSV
+
+- lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
+
+<원 중심  과정>
+
+- 계층 파악을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
+```py
+if len(hierarchy[0]) <= 1 or hierarchy == None:
+```
+- 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
+- zerodivision 에러를 막기 위해 분모에 아주 작은 실수를 더해준다.
+```py
+cnt = contours[1]
+...
+M = cv2.moments(cnt)
+cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+...
+return cx, cy
+```
+
+**4. find_centroid**
+
+- capture_img로 캡쳐된 장면을 이진화한 후 컨투어를 찾는다. (중심에 가까울수록 계층이 작은 RETR_LIST를 옵션으로 넣어 원이 0번 계층으로 잡히게 만듦)
+- 만약 계층개수가 1개거나 0개이면 드론을 뒤로 움직여서 다시 find_centroid를 사용한다. 장애물이미지가 잘리지 않았을 때, 즉 컨투어가 2개일 때 중심의 좌표를 반환한다.
+
+-  두번째 장애물부터는 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동을 반복한다. (장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재) 
+-  장애물이 다 보이는 위치로 이동을 하면 앞에서와 똑같이 중심을 리턴해준다. 
 
 ```py
 img = cv2.imread(capture_img())
@@ -104,9 +175,13 @@ else:
     # cv2.imshow('mask', mask)
     # cv2.waitKey(0)
     return cx, cy
+```
 
-**4.match_cneter**
-find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함수이다
+**5.match_center**
+
+find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함수이다.
+
+```py
     while not check_y(drone):
         cy = find_centroid(drone)[1]
         if cy < 143:
@@ -134,8 +209,10 @@ find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함�
     pass_obstacle(drone)
 ```
 
-**5.check_x**
+**6.check_x**
+
 check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
+
 find_centroid 와 동일한 과정을 통해 중심값을 찾고 오차를 계산하여 True, False를 반환한다.
 
 ```py
@@ -164,7 +241,8 @@ def check_x(drone):
         return False
 ```        
 
-**6.check_y**
+**7.check_y**
+
 check_x와 동일하다
 
 ```py
@@ -251,114 +329,7 @@ def pass_obstacle(drone):
             time.sleep(2)
             return 0
 
-**3. move_to_center**
-
-    h = -1
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
-    while h < 2:
-        print('move to center')
-        img = cv2.imread(capture_img())
-        img = cv2.GaussianBlur(img, (9, 9), 3)
-
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
-
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        cnt = contours[0]
-        M = cv2.moments(cnt)
-
-        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-        h = len(hierarchy[0])
-        print(h)
-        
-        if h >= 2:
-            break
-
-        while not check_y(drone):
-            if cy < 143:
-                drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-            elif cy > 157:
-                drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
-            else:
-                print('y ok y : ', cy)
-            time.sleep(2)
-
-        drone.sendControlWhile(0, 0, 0, 0, 1000)
-
-        while not check_x(drone):
-            if cx < 113:
-                drone.sendControlPosition(0, 0.1, 0, 0.5, 0, 0)
-            elif cx > 127:
-                drone.sendControlPosition(0, -0.1, 0, 0.5, 0, 0)
-            else:
-                print('x ok x : ', cx)
-            time.sleep(2)
-<이미지 처리 과정>
-
-- 우선 이미지를 blur처리를 해준다. -> cv2.GaussianBlur
-
-- 이미지의 BGR로 HSV값으로 바꿔준다. -> cv2.COLOR_BGR2HSV
-
-- lower_blue, upper_blue라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
-
-<원 중심  과정>
-
-- 계층 파악을 통해 원이 잘리게 화면에 직힌다면 드론이 후진을 하도록 하였고 
-```py
-if len(hierarchy[0]) <= 1 or hierarchy == None:
-```
-- 그렇지 않다면 contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
-- zerodivision 에러를 막기 위해 분모에 아주 작은 실수를 더해준다.
-```py
-cnt = contours[1]
-...
-M = cv2.moments(cnt)
-cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-...
-return cx, cy
-```
-
-
-**4. check_distance**
-
-- find_centroid를 통해 무게 중심(cx, cy)을 찾고 무게 중심 값이 처음 설정한 값보다 클 시에는 0.15에 (-)를 달아주었다.
-
-*중심에 가까워질려면 음의 값이어야하기 때문이다, 0.15는 움직이는 거리이다.*
-
-- 그 값을 mx, my로 지정하고 그만큼 드론을 이동시켜준다.
-   
-- 다시 find_centroid를 통해 무게 중심(cx2, cy2)을 찾고 
-0.15 * (cx2 - 120) / (cx - cx2), 0.15 * (cy2 - 140) / (cy - cy2) 의 값을 반환해준다.
-    
-    
-**5. check_center**
-
-- find_centroid 함수의 <이미지 처리 과정>를 똑같이 거친다.
-
-- contour를 이용해서 안의 위치한 원의 무게중심을 파악한다.
-```py
-cnt = contours[1]
-M = cv2.moments(cnt)
-cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-```
-- cx와 cy의 값이 처음 중심이라 잡은 (120, 140*)와 10 이하의 차이가 난다면 True, 아니라면 False를 반환한다.
- 
- 
-**6. move_to_center**
-
-- check_distance의 return 값을 x, y로 받고 drone을 x, y 만큼 움직인다. 
-```py
-drone.sendControlPosition(0, x, y, 1, 0, 0) 
-```
-
-- check_center가 True로 반환되면 pass_obstacle을 하고 아닐시에는 check_distance로 거리를 다시 측정한 다음 move_to_center를 다시 해준다.
-
-
-**7. find_redpoint**
+**8. find_redpoint**
 
 <이미지 처리 과정>
 
@@ -367,15 +338,14 @@ drone.sendControlPosition(0, x, y, 1, 0, 0)
 - lower_red, upper_red라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange 
 
 - mask 처리된 것에서 np.nonzero의 갯수를 알아내서 return 해준다.
+
 ```py
 point_red = np.nonzero(mask)
 num_point_red = np.size(point_red)
 return num_point_red
 ```
 
-
-
-**8. find_purplepoint**
+**9. find_purplepoint**
 
 <이미지 처리 과정>
 
@@ -384,15 +354,14 @@ return num_point_red
 - lower_purple, upper_purple라는 array를 만들어 주고 카메라로 캡쳐한 화면에서 이 범위에 있는 부분을 mask처리한다. -> cv2.inRange
 
 - mask 처리된 것에서 np.nonzero의 갯수를 알아내서 return 해준다.
+
 ```py
 point_purple = np.nonzero(mask)
 num_point_purple = np.size(point_purple)
 return num_point_purple
 ```
 
-
-
-**9. pass_obstacle**
+**10. pass_obstacle**
 
 - find_purplepoint의 값이 1000보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
 
