@@ -101,8 +101,7 @@ def find_centroid(drone, flag):
                 return cx, cy
         except Exception as e :
             drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
-            print(e)
-            time.sleep(3)
+            time.sleep(2)
 
 def match_center(drone, flag):
     while not check_y(drone):
@@ -242,16 +241,14 @@ print('start')
 flag = 1
 match_center(drone, flag)
 print('finish1')
-time.sleep(5)
+time.sleep(3)
 
 flag = 2
 match_center(drone, flag)
 print('finish2')
-time.sleep(5)
+time.sleep(3)
 
 flag = 3
 match_center(drone, flag)
 print('finish3')
 drone.close()
-
-
