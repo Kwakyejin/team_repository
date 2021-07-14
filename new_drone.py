@@ -135,9 +135,9 @@ def check_y(drone):
 def find_redpoint():
     img = cv2.imread(capture_img())
     upper_red = np.array([180, 255, 255])
-    lower_red = np.array([170, 0, 0])
+    lower_red = np.array([170, 50, 70])
     upper_red2 = np.array([20, 255, 255])
-    lower_red2 = np.array([0, 0, 0])
+    lower_red2 = np.array([0, 50, 70])
     img = cv2.GaussianBlur(img, (9, 9), 2.5)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -155,7 +155,7 @@ def find_redpoint():
 def find_purplepoint():
     img = cv2.imread(capture_img())
     upper_purple = np.array([135, 255, 255])
-    lower_purple = np.array([120, 0, 0])
+    lower_purple = np.array([120, 50, 70])
     img = cv2.GaussianBlur(img, (9, 9), 2.5)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -168,13 +168,13 @@ def find_purplepoint():
 
 def pass_obstacle(drone):
     while True:
-        if find_purplepoint() > 1000:
+        if find_purplepoint() > 700:
             print('detect purple point')
             drone.sendLanding()
             drone.close()
             return 0
 
-        if find_redpoint() < 1000:
+        if find_redpoint() < 700:
             drone.sendControlPosition16(4, 0, 0, 5, 0, 0)
             drone.sendControlWhile(0, 0, 0, 0, 1000)
             print('not find red(purple) point')
