@@ -252,5 +252,3 @@ flag = 3
 match_center(drone, flag)
 print('finish3')
 drone.close()
-
-
