@@ -74,7 +74,7 @@ capture_img로 캡쳐된 장면을 이진화한 후 컨투어를 찾는다. 이�
 
 두번째 장애물부터는 장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재한다. 그렇기에 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동한다. 이를 반복하다보면 결국 장애물이 다 보이는 위치로 이동하게 되고, 이후에는 앞에서와 똑같이 중심을 리턴해준다.
 
-'''py
+```py
 img = cv2.imread(capture_img())
 img = cv2.GaussianBlur(img, (9, 9), 3)
 
@@ -132,13 +132,13 @@ find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함�
     drone.sendControlWhile(0, 0, 0, 0, 1000)
 
     pass_obstacle(drone)
-'''
+```
 
 **5.check_x**
 check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
 find_centroid 와 동일한 과정을 통해 중심값을 찾고 오차를 계산하여 True, False를 반환한다.
 
-'''py
+```py
 def check_x(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
@@ -162,12 +162,12 @@ def check_x(drone):
         return True
     else:
         return False
-'''        
+```        
 
 **6.check_y**
 check_x와 동일하다
 
-'''py
+```py
 def check_y(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
@@ -190,7 +190,7 @@ def check_y(drone):
         return True
     else:
         return False
-'''
+```
 
 def find_redpoint():
     img = cv2.imread(capture_img())
