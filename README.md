@@ -31,20 +31,13 @@ B리그 분들의 알고리즘은 똑같이 중심을 찾고 중심 쪽으로 �
 
 - find_redpoint와 find_purplepoint로 빨간점, 보라점을 찾고 찾은 이후에는 pass_obstacle로 보라점을 찾았을 시에는 착지, 빨간점을 찾았을 시에는 90도 좌회전을 한다. -> pass_obstacle
 
-
-
-
-
 ## 소스 코드 설명
 ### requirement
 ```py
-import cv2
-import numpy as np
-from e_drone.drone import *
-from e_drone.protocol import *
-from picamera.array import PiRGBArray
-from picamera import PiCamera
-import time
+e-drone == 21.1.6
+numpy == 1.16.2
+Pillow == 5.4.1
+opencv == 3.2.0
 ```
 
 ### drone.py
@@ -74,8 +67,6 @@ camera.capture(img)
 camera.close()
 return img  # capture img path
 ```
-
-
 
 
 def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
