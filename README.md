@@ -135,7 +135,7 @@ find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함�
 
 **5.check_x**
 check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
-find
+find_centroid 와 동일한 과정을 통해 중심값을 찾고 오차를 계산하여 True, False를 반환한다.
 def check_x(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
@@ -160,6 +160,8 @@ def check_x(drone):
     else:
         return False
 
+**6.check_y**
+check_x와 동일하
 def check_y(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
