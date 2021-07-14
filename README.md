@@ -19,13 +19,13 @@ B리그 분들의 알고리즘은 똑같이 중심을 찾고 중심 쪽으로 �
 ## 알고리즘 설명
 *main idea -> 중심을 찾고 중심 쪽으로 드론을 위치 시간 다음 장애물을 통과한다.*
 
-- hovering 후 드론 내장된 카메라로 하나의 이미지를 찍는다. 이때 중심을 (120, 140*) 으로 둔다. 
+- hovering 후 드론 내장된 카메라로 하나의 이미지를 찍는다. 이때 중심을 (120, 150*) 으로 둔다. 
 
 *완전한 중심은 (120,120)이지만 카메라가 드론의 아래에 달려있기 때문이다.*
 
 - 그리고 난 후 find_centroid로 찾은 중점을 중심 방향으로 이동할 수 있게 드론을 움직여준다.
 
-- 처음 찍힌 원과 중심, 중심 방향으로 이동한 원과 중심의 비율 통해서 중심 방향으로 이동한 원에서 얼만큼 x,y 축으로 이동하면 중심에 도달할지 알 수 있다. -> check_distance
+- 드론의 위치와 중심사이 거리의 오차를 check_x, check_y 함수를 통해 찾아서 드론이 중심에 있는지 없는지를 판단한다.
 
 - 중심에 도달한 이후에는 쭉 직진을 한다. -> pass_obstacle
 
@@ -68,43 +68,44 @@ camera.close()
 return img  # capture img path
 ```
 
+**3. find_centroid**
 
-def find_centroid(drone):  # centroid = 240x240 in (480x480) // need to recheck
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
-    while True:
-        img = cv2.imread(capture_img())
-        img = cv2.GaussianBlur(img, (9, 9), 3)
+capture_img로 캡쳐된 장면을 이진화한 후 컨투어를 찾는다. 이때 중심에 가까울수록 계층이 작은 RETR_LIST를 옵션으로 넣어 원이 0번 계층으로 잡히게 만든다. 만약 계층개수가 1개거나 0개이면 드론을 뒤로 움직여서 다시 find_centroid를 사용한다. 장애물이미지가 잘리지 않았을 때, 즉 컨투어가 2개일 때 중심의 좌표를 반환한다.
 
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+두번째 장애물부터는 장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재한다. 그렇기에 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동한다. 이를 반복하다보면 결국 장애물이 다 보이는 위치로 이동하게 되고, 이후에는 앞에서와 똑같이 중심을 리턴해준다.
 
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+img = cv2.imread(capture_img())
+img = cv2.GaussianBlur(img, (9, 9), 3)
 
-        print(len(hierarchy[0]))
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        try:
-            if len(hierarchy[0]) <= 1 :
-                drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
-                move_to_center(drone)
-            else:
-                cnt = contours[0]
-                img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
-                M = cv2.moments(cnt)
-                cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-                cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-                print(cx, cy)
-                # cv2.imshow('mask', mask)
-                # cv2.waitKey(0)
-                return cx, cy
-        except ValueError:
-            print("go back")
-            #cv2.imshow('mask', mask)
-            #cv2.waitKey(0)
-            drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
-            time.sleep(2)
+_, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-def match_center(drone):
+if len(hierarchy[0]) <= 1 and flag == 1:
+    print("go back")
+    # cv2.imshow('mask', mask)
+    # cv2.waitKey(0)
+    drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
+    time.sleep(2)
+
+elif len(hierarchy[0]) <= 1 and flag != 1:
+    drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
+    move_to_center(drone)
+
+else:
+    cnt = contours[0]
+    img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
+    M = cv2.moments(cnt)
+    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+    print(cx, cy)
+    # cv2.imshow('mask', mask)
+    # cv2.waitKey(0)
+    return cx, cy
+
+**4.match_cneter**
+find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함수이다
     while not check_y(drone):
         cy = find_centroid(drone)[1]
         if cy < 143:
@@ -132,6 +133,9 @@ def match_center(drone):
     pass_obstacle(drone)
 
 
+**5.check_x**
+check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
+find
 def check_x(drone):
     lower_blue = np.array([100, 80, 80])
     upper_blue = np.array([110, 255, 255])
@@ -381,11 +385,11 @@ return num_point_purple
 
 **9. pass_obstacle**
 
-- find_purplepoint의 값이 100보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
+- find_purplepoint의 값이 1000보다 작을시에는 드론을 착륙시키고 드론 객체를 종료시킨다.
 
-- find_redpoint의 값이 110보다 작을 시에는 드론을 x축으로 0.5 이동시킨 다음 pass_obstacle를 다시 실행시켜본다.
+- find_redpoint의 값이 1000보다 작을 시에는 드론을 x축으로 0.5 이동시킨 다음 pass_obstacle를 다시 실행시켜본다.
 
-- find_redpoint의 값이 110보다 클 시에는 드론을 90도로 좌회전을 시켜준다.
+- find_redpoint의 값이 1000보다 클 시에는 드론을 90도로 좌회전을 시켜준다.
 
 
 ### main.py
