@@ -27,78 +27,84 @@ def move_to_center(drone):
     lower_blue = np.array([100, 30, 30])
     upper_blue = np.array([110, 255, 255])
     while h < 2:
-        img = cv2.imread(capture_img())
-        img = cv2.GaussianBlur(img, (9, 9), 3)
+        try:
+            img = cv2.imread(capture_img())
+            img = cv2.GaussianBlur(img, (9, 9), 3)
 
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        cnt = contours[0]
-        M = cv2.moments(cnt)
+            _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            cnt = contours[0]
+            M = cv2.moments(cnt)
 
-        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-        h = len(hierarchy[0])
-        #print(h)
+            cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+            cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+            h = len(hierarchy[0])
 
-        if h >= 2:
-            break
+            if h >= 2:
+                break
 
-        while not check_y(drone):
-            if cy < 140:
-                drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-            elif cy > 160:
-                drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
-            else:
-                print('y ok y : ', cy)
+            while not check_y(drone):
+                if cy < 140:
+                    drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
+                elif cy > 160:
+                    drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
+                else:
+                    print('y ok y : ', cy)
+                time.sleep(1)
+
+            drone.sendControlWhile(0, 0, 0, 0, 1000)
+
+            while not check_x(drone):
+                if cx < 110:
+                    drone.sendControlPosition(0, 0.1, 0, 0.5, 0, 0)
+                elif cx > 130:
+                    drone.sendControlPosition(0, -0.1, 0, 0.5, 0, 0)
+                else:
+                    print('x ok x : ', cx)
+                time.sleep(1)
+            drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
             time.sleep(1)
-
-        drone.sendControlWhile(0, 0, 0, 0, 1000)
-
-        while not check_x(drone):
-            if cx < 110:
-                drone.sendControlPosition(0, 0.1, 0, 0.5, 0, 0)
-            elif cx > 130:
-                drone.sendControlPosition(0, -0.1, 0, 0.5, 0, 0)
-            else:
-                print('x ok x : ', cx)
+        except Exception as e:
+            drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
             time.sleep(1)
-            
-        drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
-        time.sleep(1)
 
 def find_centroid(drone, flag):
     lower_blue = np.array([100, 30, 30])
     upper_blue = np.array([110, 255, 255])
     while True:
-        img = cv2.imread(capture_img())
-        img = cv2.GaussianBlur(img, (9, 9), 3)
+        try:
+            img = cv2.imread(capture_img())
+            img = cv2.GaussianBlur(img, (9, 9), 3)
 
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        if len(hierarchy[0]) <= 1 and flag == 1:
-            print("go back")
+            if len(hierarchy[0]) <= 1 and flag == 1:
+                print("go back")
+                drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
+                time.sleep(1)
+
+            elif len(hierarchy[0]) <= 1 and flag != 1:
+                drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
+                move_to_center(drone)
+
+            else:
+                cnt = contours[0]
+                M = cv2.moments(cnt)
+                cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+                cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+                print(cx, cy)
+                return cx, cy
+        except Exception as e :
             drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
-            time.sleep(1)
-
-        elif len(hierarchy[0]) <= 1 and flag != 1:
-            drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
-            move_to_center(drone)
-
-        else:
-            cnt = contours[0]
-            M = cv2.moments(cnt)
-            cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-            cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-            print(cx, cy)
-            return cx, cy
+            print(e)
+            time.sleep(3)
 
 def match_center(drone, flag):
-  
     while not check_y(drone):
         cy = find_centroid(drone, flag)[1]
         if cy < 140:
@@ -125,49 +131,54 @@ def match_center(drone, flag):
     pass_obstacle(drone)
 
 def check_x(drone):
+    try:
+        lower_blue = np.array([100, 30, 30])
+        upper_blue = np.array([110, 255, 255])
 
-    lower_blue = np.array([100, 30, 30])
-    upper_blue = np.array([110, 255, 255])
+        img = cv2.imread(capture_img())
+        img = cv2.GaussianBlur(img, (9, 9), 3)
 
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        cnt = contours[0]
+        M = cv2.moments(cnt)
+        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+        print('check_x : ', cx)
 
-    cnt = contours[0]
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_x : ', cx)
-
-    if abs(cx - 120) <= 10:
-        print('x true')
-        return True
-    else:
+        if abs(cx - 120) <= 10:
+            print('x true')
+            return True
+        else:
+            return False
+    except Exception as e:
         return False
 
 def check_y(drone):
-    lower_blue = np.array([100, 30, 30])
-    upper_blue = np.array([110, 255, 255])
+    try:
+        lower_blue = np.array([100, 30, 30])
+        upper_blue = np.array([110, 255, 255])
 
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
+        img = cv2.imread(capture_img())
+        img = cv2.GaussianBlur(img, (9, 9), 3)
 
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_blue, upper_blue)
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    cnt = contours[0]
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_y : ', cy)
-    if abs(cy - 150) <= 10:
-        print('y true')
-        return True
-    else:
+        cnt = contours[0]
+        M = cv2.moments(cnt)
+        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+        print('check_y : ', cy)
+        if abs(cy - 150) <= 10:
+            print('y true')
+            return True
+        else:
+            return False
+    except Exception as e:
         return False
 
 def find_redpoint():
@@ -222,9 +233,10 @@ def pass_obstacle(drone):
 
 drone = initialize()
 drone.sendTakeOff()
-time.sleep(3)
+time.sleep(2)
 
 drone.sendControlWhile(0, 0, 0, 0, 1000)
+time.sleep(1)
 print('start')
 
 flag = 1
