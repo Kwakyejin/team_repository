@@ -31,6 +31,7 @@ B리그 분들의 알고리즘은 똑같이 중심을 찾고 중심 쪽으로 �
 
 - find_redpoint와 find_purplepoint로 빨간점, 보라점을 찾고 찾은 이후에는 pass_obstacle로 보라점을 찾았을 시에는 착지, 빨간점을 찾았을 시에는 90도 좌회전을 한다. -> pass_obstacle
 
+
 ## 소스 코드 설명
 ### requirement
 ```py
@@ -43,6 +44,7 @@ opencv == 3.2.0
 
 ### drone.py
 드론에 대한 함수를 정의한 파이썬 
+
 
 **1. initialize**
 
@@ -134,6 +136,12 @@ _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_
 ```
 
 - 만약 계층개수가 1개거나 0개이면 드론을 뒤로 움직여서 다시 find_centroid를 사용한다. 장애물이미지가 잘리지 않았을 때, 즉 컨투어가 2개일 때 중심의 좌표를 반환한다.
+```py
+print("go back")
+# cv2.imshow('mask', mask)
+# cv2.waitKey(0)
+drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
+```
 
 -  두번째 장애물부터는 장애물의 일부가 보이면 보인 부분의 무게중심을 구해 이동을 반복한다. (장애물이 상하좌우로 움직이기에 뒤로만 가서는 중점을 찾기에 한계가 존재) 
 ```py
@@ -142,27 +150,17 @@ move_to_center(drone)
 ```    
     
 -  장애물이 다 보이는 위치로 이동을 하면 앞에서와 똑같이 중심을 리턴해준다. 
-
-
-
-if len(hierarchy[0]) <= 1 and flag == 1:
-    print("go back")
-    # cv2.imshow('mask', mask)
-    # cv2.waitKey(0)
-    drone.sendControlPosition(-0.3, 0, 0, 1, 0, 0)
-    time.sleep(2)
-
-
-else:
-    cnt = contours[0]
-    img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print(cx, cy)
-    # cv2.imshow('mask', mask)
-    # cv2.waitKey(0)
-    return cx, cy
+```py
+cnt = contours[0]
+img = cv2.drawContours(img, contours, 0, (255, 255, 0), 3)
+M = cv2.moments(cnt)
+cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+print(cx, cy)
+# cv2.imshow('mask', mask)
+# cv2.waitKey(0)
+return cx, cy
+``` 
 
 **5.match_center**
 
@@ -200,87 +198,26 @@ drone.sendControlWhile(0, 0, 0, 0, 1000)
 - check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
 
 - find_centroid 와 동일한 과정을 통해 중심값을 찾고 오차를 계산하여 True, False를 반환한다.
-
 ```py
-
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
-
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
-
-    # img = cv2.resize(img, dsize=(240,240))
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    cnt = contours[0]
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_x : ', cx)
-
-    if abs(cx - 120) <= 7:
-        print('x true')
-        return True
-    else:
-        return False
+if abs(cx - 120) <= 10:
+    print('x true')
+    return True
+else:
+    return False
 ```        
 
 **7.check_y**
 
-check_x와 동일하다
+- check_x와 동일하게 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
 
+- find_centroid 와 동일한 과정을 통해 중심값을 찾고 오차를 계산하여 True, False를 반환한다.
 ```py
-
-    lower_blue = np.array([100, 80, 80])
-    upper_blue = np.array([110, 255, 255])
-
-    img = cv2.imread(capture_img())
-    img = cv2.GaussianBlur(img, (9, 9), 3)
-
-    # img = cv2.resize(img, dsize=(240,240))
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    cnt = contours[0]
-    M = cv2.moments(cnt)
-    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
-    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-    print('check_y : ', cy)
-    if abs(cy - 150) <= 7:
-        print('y true')
-        return True
-    else:
-        return False
+if abs(cy - 150) <= 10:
+    print('y true')
+    return True
+else:
+    return False
 ```
-
-
-def pass_obstacle(drone):
-    while True:
-        if find_purplepoint() > 1000:
-            print('detect purple point')
-            drone.sendLanding()
-            drone.close()
-            return 0
-
-        if find_redpoint() < 1000:
-            drone.sendControlPosition16(4, 0, 0, 5, 0, 0)
-            time.sleep(2)
-            drone.sendControlWhile(0, 0, 0, 0, 1000)
-            print('not find red(purple) point')
-            time.sleep(1)
-
-        else:
-            drone.sendControlPosition(0, 0, 0, 0, 90, 45)
-            print('find red point')
-            time.sleep(3)
-            drone.sendControlWhile(0, 0, 0, 0, 1000)
-            print('h')
-            drone.sendControlPosition16(10, 0, 0, 5, 0, 0)
-            time.sleep(2)
-            return 0
 
 **8. find_redpoint**
 
