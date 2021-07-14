@@ -31,7 +31,7 @@ B리그 분들의 알고리즘은 똑같이 중심을 찾고 중심 쪽으로 �
 
 - find_redpoint와 find_purplepoint로 빨간점, 보라점을 찾고 찾은 이후에는 pass_obstacle로 보라점을 찾았을 시에는 착지, 빨간점을 찾았을 시에는 90도 좌회전을 한다. -> pass_obstacle
 
-![image](https://user-images.githubusercontent.com/81745747/125560357-585f47ce-727f-4180-a800-24492807caad.png)
+<img src="https://user-images.githubusercontent.com/81745747/125560357-585f47ce-727f-4180-a800-24492807caad.png" width="200" height="100">
 
 
 
