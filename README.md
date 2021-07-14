@@ -162,6 +162,7 @@ print(cx, cy)
 return cx, cy
 ``` 
 
+
 **5.match_center**
 
 find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함수이다.
@@ -193,6 +194,7 @@ drone.sendControlWhile(0, 0, 0, 0, 1000)
 
 - pass_obstacle를 실행시준다.
 
+
 **6.check_x**
 
 - check_x는 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
@@ -206,6 +208,7 @@ else:
     return False
 ```        
 
+
 **7.check_y**
 
 - check_x와 동일하게 match_center에서 이동명령을 줄 때 드론이 중심에 있는지 없는지를 판별해주는 함수이다.
@@ -218,6 +221,7 @@ if abs(cy - 150) <= 10:
 else:
     return False
 ```
+
 
 **8. find_redpoint**
 
@@ -235,6 +239,7 @@ num_point_red = np.size(point_red)
 return num_point_red
 ```
 
+
 **9. find_purplepoint**
 
 <이미지 처리 과정>
@@ -250,6 +255,7 @@ point_purple = np.nonzero(mask)
 num_point_purple = np.size(point_purple)
 return num_point_purple
 ```
+
 
 **10. pass_obstacle**
 
