@@ -101,7 +101,7 @@ def find_centroid(drone, flag):
                 return cx, cy
         except Exception as e :
             drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
-            time.sleep(3)
+            time.sleep(2)
 
 def match_center(drone, flag):
     while not check_y(drone):
