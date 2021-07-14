@@ -169,19 +169,19 @@ find_centroid에서 반환받은 중심점으로의 이동명령을 주는 함�
 
 <check_y가 False일때> 
 
-- check_y가 False면서 중심(cy)이 143보다 작을 때 y축으로 0.1 상승한다.
+- 중심(cy)이 143보다 작을 때 y축으로 0.1 상승한다.
 
-- check_y가 False면서 중심이 157보다 클 때 y축으로 0.1 하강한다.
+- 중심이 157보다 클 때 y축으로 0.1 하강한다.
 
-- check_y가 False면서 중심이 143보다 크고 157보다 작을 때 print('y ok y : ', cy)를 해준다.
+- 중심이 143보다 크고 157보다 작을 때 print('y ok y : ', cy)를 해준다.
 
 <check_x가 False일때>
 
-- check_x가 False면서 중심(cx)이 113보다 작을 때 x축으로 0.1 증가한다.
+- 중심(cx)이 113보다 작을 때 x축으로 0.1 증가한다.
 
-- check_x가 False면서 중심이 127보다 클 때 x축으로 0.1 감소한다.
+- 중심이 127보다 클 때 x축으로 0.1 감소한다.
 
-- check_x가 False면서 중심이 113보다 크고 127보다 작을 때 print('x ok x : ', cx)를 해준다.
+- 중심이 113보다 크고 127보다 작을 때 print('x ok x : ', cx)를 해준다.
 ```py
 cy = find_centroid(drone)[1]
 ...        
