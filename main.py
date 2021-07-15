@@ -83,7 +83,6 @@ def find_centroid(drone, flag):
             _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
             if len(hierarchy[0]) <= 1 and flag == 1:
-                print("go back")
                 drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
                 time.sleep(1)
 
@@ -96,7 +95,6 @@ def find_centroid(drone, flag):
                 M = cv2.moments(cnt)
                 cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
                 cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-                print(cx, cy)
                 return cx, cy
         except Exception as e :
             drone.sendControlPosition(-0.3, 0, 0, 0.5, 0, 0)
@@ -144,10 +142,8 @@ def check_x(drone):
         M = cv2.moments(cnt)
         cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-        print('check_x : ', cx)
 
         if abs(cx - 120) <= 10:
-            print('x true')
             return True
         else:
             return False
@@ -172,7 +168,6 @@ def check_y(drone):
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
         print('check_y : ', cy)
         if abs(cy - 130) <= 10:
-            print('y true')
             return True
         else:
             return False
@@ -195,9 +190,7 @@ def check_red_y(drone):
         M = cv2.moments(cnt)
         cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
-        print('check_y : ', cy)
         if abs(cy - 140) <= 10:
-            print('y true')
             return True
         else:
             return False
@@ -215,7 +208,6 @@ def find_redpoint():
 
     point_red = np.nonzero(mask)
     num_point_red = np.size(point_red)
-    print('red : ', num_point_red)
     return num_point_red
 
 def find_purplepoint():
@@ -228,7 +220,6 @@ def find_purplepoint():
     mask = cv2.inRange(hsv, lower_purple, upper_purple)
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
-    print('purple : ', num_point_purple)
     return num_point_purple
 
 def find_centroid_red():
@@ -264,7 +255,6 @@ def pass_obstacle(drone):
     t = 0
     while True:
         if find_purplepoint() > 700:
-            print('detect purple point')
             drone.sendLanding()
             drone.close()
             return 0
@@ -278,11 +268,9 @@ def pass_obstacle(drone):
         if find_redpoint() < 700:
             drone.sendControlPosition(0.4, 0, 0, 0.5, 0, 0)
             time.sleep(1)
-            print('not find red(purple) point')
 
         else:
             drone.sendControlPosition(0, 0, 0, 0, 90, 45)
-            print('find red point')
             time.sleep(3)
             drone.sendControlWhile(0, 0, 0, 0, 1000)
             time.sleep(1)
