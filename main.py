@@ -46,9 +46,9 @@ def move_to_center(drone):
                 break
 
             while not check_y(drone):
-                if cy < 140:
+                if cy < 130:
                     drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-                elif cy > 160:
+                elif cy > 150:
                     drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
                 else:
                     print('y ok y : ', cy)
@@ -106,9 +106,9 @@ def find_centroid(drone, flag):
 def match_center(drone, flag):
     while not check_y(drone):
         cy = find_centroid(drone, flag)[1]
-        if cy < 140:
+        if cy < 130:
             drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-        elif cy > 160:
+        elif cy > 150:
             drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
         else:
             print('y ok y : ', cy)
@@ -172,7 +172,7 @@ def check_y(drone):
         cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
         print('check_y : ', cy)
-        if abs(cy - 150) <= 10:
+        if abs(cy - 140) <= 10:
             print('y true')
             return True
         else:
@@ -209,14 +209,14 @@ def find_purplepoint():
 
 def pass_obstacle(drone):
     while True:
-        if find_purplepoint() > 1000:
+        if find_purplepoint() > 700:
             print('detect purple point')
             drone.sendLanding()
             drone.close()
             return 0
 
-        if find_redpoint() < 1000:
-            drone.sendControlPosition(0.4, 0, 0, 0.5, 0, 0)
+        if find_redpoint() < 700:
+            drone.sendControlPosition(0.4, 0, 0, 1, 0, 0)
             time.sleep(1)
             print('not find red(purple) point')
 
