@@ -46,9 +46,9 @@ def move_to_center(drone):
                 break
 
             while not check_y(drone):
-                if cy < 130:
+                if cy < 120:
                     drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-                elif cy > 150:
+                elif cy > 140:
                     drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
                 else:
                     print('y ok y : ', cy)
@@ -80,7 +80,8 @@ def find_centroid(drone, flag):
 
             hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             mask = cv2.inRange(hsv, lower_blue, upper_blue)
-
+            cv2.imshow('img', img)
+            cv2.waitKey(0)
             _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
             if len(hierarchy[0]) <= 1 and flag == 1:
@@ -106,9 +107,9 @@ def find_centroid(drone, flag):
 def match_center(drone, flag):
     while not check_y(drone):
         cy = find_centroid(drone, flag)[1]
-        if cy < 130:
+        if cy < 120:
             drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
-        elif cy > 150:
+        elif cy > 140:
             drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
         else:
             print('y ok y : ', cy)
@@ -172,6 +173,31 @@ def check_y(drone):
         cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
         cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
         print('check_y : ', cy)
+        if abs(cy - 130) <= 10:
+            print('y true')
+            return True
+        else:
+            return False
+    except Exception as e:
+        return False
+
+def check_red_y(drone):
+    try:
+        upper_red = np.array([20, 255, 255])
+        lower_red = np.array([0, 30, 0])
+
+        img = cv2.imread(capture_img())
+        img = cv2.GaussianBlur(img, (9, 9), 3)
+
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_red, upper_red)
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+        cnt = contours[0]
+        M = cv2.moments(cnt)
+        cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+        cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+        print('check_y : ', cy)
         if abs(cy - 140) <= 10:
             print('y true')
             return True
@@ -202,12 +228,44 @@ def find_purplepoint():
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_purple, upper_purple)
+    cv2.imshow('img',img)
+    cv2.waitKey(0)
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
     print('purple : ', num_point_purple)
     return num_point_purple
 
+def find_centroid_red():
+    upper_red = np.array([20, 255, 255])
+    lower_red = np.array([0, 30, 0])
+    img = cv2.imread(capture_img())
+    img = cv2.GaussianBlur(img, (9, 9), 3)
+
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    cnt = contours[0]
+    M = cv2.moments(cnt)
+    cx = int(M['m10'] / (M['m00'] + 0.000000000000001))
+    cy = int(M['m01'] / (M['m00'] + 0.000000000000001))
+    return cx, cy
+
+def match_red(drone):
+    while not check_red_y(drone):
+        cy = find_centroid_red()[1]
+        if cy < 130:
+            drone.sendControlPosition(0, 0, 0.1, 0.5, 0, 0)
+        elif cy > 150:
+            drone.sendControlPosition(0, 0, -0.1, 0.5, 0, 0)
+        else:
+            print('y ok y : ', cy)
+        time.sleep(1)
+
+
 def pass_obstacle(drone):
+    t = 0
     while True:
         if find_purplepoint() > 700:
             print('detect purple point')
@@ -215,8 +273,14 @@ def pass_obstacle(drone):
             drone.close()
             return 0
 
+        if find_redpoint() > 100:
+            if t == 0:
+                match_red(drone)
+                t = 1
+
+
         if find_redpoint() < 700:
-            drone.sendControlPosition(0.4, 0, 0, 1, 0, 0)
+            drone.sendControlPosition(0.4, 0, 0, 0.5, 0, 0)
             time.sleep(1)
             print('not find red(purple) point')
 
