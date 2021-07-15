@@ -80,8 +80,6 @@ def find_centroid(drone, flag):
 
             hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             mask = cv2.inRange(hsv, lower_blue, upper_blue)
-            cv2.imshow('img', img)
-            cv2.waitKey(0)
             _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
             if len(hierarchy[0]) <= 1 and flag == 1:
@@ -228,8 +226,6 @@ def find_purplepoint():
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_purple, upper_purple)
-    cv2.imshow('img',img)
-    cv2.waitKey(0)
     point_purple = np.nonzero(mask)
     num_point_purple = np.size(point_purple)
     print('purple : ', num_point_purple)
